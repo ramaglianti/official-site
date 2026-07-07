@@ -8,395 +8,92 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-<style>
-  :root{
-    --paper:#FFFFFF;      /* 白背景 */
-    --ink:#192243;        /* 共通メインカラー（ネイビー） */
-    --ink-soft:rgba(25,34,67,0.62);
-    --ink-faint:rgba(25,34,67,0.4);
-    --line:#DCDFE7;       /* ネイビーがかった罫線 */
-    --maxw:1040px;
-  }
-
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  @media (prefers-reduced-motion: reduce){
-    html{scroll-behavior:auto;}
-    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
-  }
-
-  body{
-    margin:0;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Noto Sans JP', sans-serif;
-    font-weight:400;
-    line-height:1.9;
-    -webkit-font-smoothing:antialiased;
-  }
-
-  .serif{ font-family:'Cormorant Garamond', serif; }
-
-  a{ color:inherit; }
-
-  .wrap{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:0 1.75rem;
-  }
-
-  /* ---------- Header ---------- */
-  header{
-    position:sticky;
-    top:0;
-    z-index:50;
-    background:rgba(255,255,255,0.86);
-    backdrop-filter:blur(6px);
-    border-bottom:1px solid var(--line);
-  }
-  .header-inner{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:1.1rem 1.75rem;
-    max-width:var(--maxw);
-    margin:0 auto;
-  }
-  .logo{
-    display:inline-flex;
-    align-items:center;
-    text-decoration:none;
-  }
-  .logo-img{
-    height:22px;
-    width:auto;
-    display:block;
-  }
-  .logo-img--footer{ height:20px; margin-bottom:0.9rem; }
-  nav ul{
-    list-style:none;
-    display:flex;
-    gap:1.6rem;
-    margin:0;
-    padding:0;
-  }
-  nav a{
-    text-decoration:none;
-    font-size:0.72rem;
-    letter-spacing:0.16em;
-    color:var(--ink);
-    opacity:0.55;
-    transition:opacity .3s ease, color .3s ease;
-    white-space:nowrap;
-  }
-  nav a:hover, nav a.active{ opacity:1; }
-
-  .nav-toggle{ display:none; }
-
-  /* ---------- Hero ---------- */
-  .hero{
-    padding:6.5rem 0 5rem;
-    text-align:center;
-  }
-  .eyebrow{
-    font-size:0.72rem;
-    letter-spacing:0.28em;
-    opacity:0.6;
-    margin-bottom:1.4rem;
-  }
-  .hero h1{
-    font-family:'Cormorant Garamond', serif;
-    font-weight:600;
-    font-size:clamp(3rem, 9vw, 5.5rem);
-    letter-spacing:0.04em;
-    margin:0 0 1.2rem;
-  }
-  .hero .tagline{
-    font-family:'Cormorant Garamond', serif;
-    font-style:italic;
-    font-size:clamp(1.15rem, 2.4vw, 1.5rem);
-    opacity:0.85;
-    margin:0 auto 1.8rem;
-    max-width:34rem;
-  }
-  .hero p.lead{
-    max-width:36rem;
-    margin:0 auto;
-    font-size:0.95rem;
-    opacity:0.8;
-  }
-  .hero-scroll{
-    margin-top:3.2rem;
-    display:flex;
-    justify-content:center;
-  }
-  .hero-scroll span{
-    display:block;
-    width:1px;
-    height:46px;
-    background:linear-gradient(var(--ink), transparent);
-    opacity:0.4;
-    animation:pulse-line 2.6s ease-in-out infinite;
-  }
-  @keyframes pulse-line{
-    0%,100%{ opacity:0.15; }
-    50%{ opacity:0.55; }
-  }
-
-  /* ---------- Branches (thread concept) ---------- */
-  .branches{ position:relative; }
-  .thread-line{
-    position:absolute;
-    top:2.6rem;
-    bottom:2.6rem;
-    left:1.75rem;
-    width:1px;
-    background:var(--line);
-  }
-  .branch{
-    display:flex;
-    gap:1.6rem;
-    padding:4.6rem 0;
-    border-top:1px solid var(--line);
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding-left:1.75rem;
-    padding-right:1.75rem;
-    opacity:0;
-    transform:translateY(18px);
-    transition:opacity .8s ease, transform .8s ease;
-  }
-  .branch.in-view{ opacity:1; transform:translateY(0); }
-  .branch:first-child{ border-top:none; }
-
-  .branch-marker{
-    flex:0 0 1.4rem;
-    position:relative;
-  }
-  .node{
-    position:absolute;
-    top:0.35rem;
-    left:-0.05rem;
-    width:14px;
-    height:14px;
-    border-radius:50%;
-    background:var(--paper);
-    border:1.5px solid var(--ink);
-    opacity:0.5;
-    transition:opacity .5s ease, border-color .5s ease, background .5s ease, box-shadow .5s ease;
-  }
-  .branch.in-view .node{ opacity:1; background:var(--ink); box-shadow:0 0 0 4px rgba(25,34,67,0.12); }
-
-  .branch-body{ flex:1; max-width:40rem; }
-  .branch .eyebrow{ margin-bottom:0.6rem; text-align:left; color:var(--ink-soft); }
-
-  .branch h2{
-    font-family:'Cormorant Garamond', serif;
-    font-weight:600;
-    font-size:clamp(2rem, 4.4vw, 2.7rem);
-    margin:0 0 1rem;
-    letter-spacing:0.01em;
-  }
-  .branch p{
-    font-size:0.94rem;
-    opacity:0.82;
-    margin:0 0 1.6rem;
-    max-width:34rem;
-  }
-
-  .cta{
-    display:inline-flex;
-    align-items:center;
-    gap:0.6rem;
-    font-size:0.78rem;
-    letter-spacing:0.1em;
-    text-decoration:none;
-    padding:0.7rem 0;
-    border-bottom:1px solid currentColor;
-    color:var(--ink);
-    transition:gap .3s ease, opacity .3s ease;
-  }
-  .cta:hover{ gap:1rem; }
-  .cta svg{ width:14px; height:14px; flex-shrink:0; }
-
-  /* ---------- Footer ---------- */
-  footer{
-    border-top:1px solid var(--line);
-    padding:3.4rem 0 2.6rem;
-    margin-top:1rem;
-  }
-  .footer-inner{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-between;
-    gap:2rem;
-  }
-  .footer-brand p{
-    font-size:0.8rem;
-    opacity:0.6;
-    margin:0;
-    max-width:22rem;
-  }
-  .footer-contact{
-    font-size:0.82rem;
-    opacity:0.75;
-  }
-  .footer-contact p{ margin:0 0 0.35rem; }
-  .footer-contact a{ text-decoration:none; border-bottom:1px solid var(--line); }
-  .copyright{
-    margin-top:2.4rem;
-    font-size:0.7rem;
-    letter-spacing:0.05em;
-    opacity:0.45;
-    text-align:left;
-  }
-
-  /* ---------- Responsive ---------- */
-  @media (max-width:720px){
-    nav ul{ gap:1rem; }
-    .header-inner{ padding:0.9rem 1.25rem; }
-    .wrap, .branch{ padding-left:1.25rem; padding-right:1.25rem; }
-    .thread-line{ left:1.25rem; }
-    .hero{ padding:4.6rem 0 3.4rem; }
-    .branch{ gap:1.1rem; padding:3.2rem 0; }
-  }
-  @media (max-width:560px){
-    nav a span.full{ display:none; }
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Maven+Pro:wght@400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Ramaglianti",
+  "alternateName": "デザイン事務所Ramaglianti",
+  "url": "https://ramaglianti.com",
+  "logo": "https://ramaglianti.com/assets/ramaglianti-logo.png",
+  "image": "https://ramaglianti.com/assets/ramaglianti-logo.png",
+  "description": "神奈川・茅ヶ崎を拠点とする、グラフィックデザイン・アパレルデザイン・ブランディングを専門とするデザイン事務所。ロゴやアイデンティティ開発、パッケージデザイン、エディトリアルデザインなど、ビジュアルコミュニケーション全般を手がけています。",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "菱沼2-7-32",
+    "addressLocality": "茅ヶ崎市",
+    "addressRegion": "神奈川県",
+    "postalCode": "253-0011",
+    "addressCountry": "JP"
+  },
+  "telephone": "+81-50-5806-1231",
+  "email": "info@so-thing-jp.com",
+  "areaServed": "JP",
+  "knowsAbout": ["Graphic Design", "Apparel Design", "Branding", "Logo Design", "Package Design", "Editorial Design", "Art Direction"],
+  "serviceType": ["Graphic Design", "Apparel Design", "Branding"],
+  "sameAs": [
+    "https://so-thing-jp.com",
+    "https://caffe.ramaglianti.com"
+  ]
+}
+</script>
 </head>
 <body>
 
 <header>
   <div class="header-inner">
     <a href="#top" class="logo"><img src="assets/ramaglianti-logo.png" alt="Ramaglianti" class="logo-img"></a>
-    <nav aria-label="主要セクション">
+    <nav aria-label="主要セクション" id="siteNav">
       <ul>
-        <li><a href="#design" data-target="design">DESIGN</a></li>
-        <li><a href="#jewelry" data-target="jewelry">JEWELRY</a></li>
-        <li><a href="#coffee" data-target="coffee">COFFEE</a></li>
-        <li><a href="#contact" data-target="contact">CONTACT</a></li>
+        <li><a href="#design" data-target="design">WORKS</a></li>
+        <li><a href="jewelry.html">JEWELRY</a></li>
+        <li><a href="coffee.html">COFFEE</a></li>
+        <li><a href="about.html">ABOUT</a></li>
       </ul>
     </nav>
+    <button type="button" class="nav-toggle" id="navToggle" aria-label="メニューを開く" aria-expanded="false" aria-controls="siteNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
 
 <main id="top">
 
-  <section class="hero">
-    <div class="wrap">
-      <p class="eyebrow">CHIGASAKI, JAPAN — ISPIRATO A FIRENZE</p>
-      <h1>Ramaglianti</h1>
-      <p class="tagline serif">一つの視点から生まれた、意匠と物づくり。</p>
-      <p class="lead">
-        神奈川・茅ヶ崎を拠点とするデザイン事務所Ramaglianti（ラマリアンティ）。<br>
-        フィレンツェで出会った光と建築の記憶をもとに、ジュエリーブランド「So_thing.」と<br class="br-desktop">
-        スペシャルティコーヒー「Caffè Ramaglianti」の、二つの自社ブランドを育てています。
-      </p>
-      <div class="hero-scroll" aria-hidden="true"><span></span></div>
-    </div>
-  </section>
-
-  <div class="branches wrap">
-    <div class="thread-line" aria-hidden="true"></div>
-
+  <div class="branches">
     <section class="branch" id="design">
-      <div class="branch-marker"><span class="node"></span></div>
-      <div class="branch-body">
-        <p class="eyebrow">DESIGN</p>
-        <h2 class="serif">Ramaglianti Design</h2>
-        <p>
-          ロゴやパッケージ、ブランドの一貫した世界観をかたちにするデザイン事務所です。
-          自社ブランドであるジュエリーとコーヒーを自らの手で育てながら、
-          企業や個人のブランディング・グラフィック制作のご相談も承っています。
-        </p>
-        <a class="cta" href="mailto:info@so-thing-jp.com">
-          ご相談・お問い合わせ
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-      </div>
-    </section>
-
-    <section class="branch" id="jewelry">
-      <div class="branch-marker"><span class="node"></span></div>
-      <div class="branch-body">
-        <p class="eyebrow">JEWELRY</p>
-        <h2 class="serif">So_thing.</h2>
-        <p>
-          フィレンツェの建築と光の記憶をかたちにした、シルバージュエリーブランド。
-          素材にはSV925を用い、彫りや艶の陰影に旅先の景色を重ねながら、一つひとつ受注制作しています。
-        </p>
-        <a class="cta" href="https://so-thing-jp.com" target="_blank" rel="noopener">
-          サイトを見る
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-      </div>
-    </section>
-
-    <section class="branch" id="coffee">
-      <div class="branch-marker"><span class="node"></span></div>
-      <div class="branch-body">
-        <p class="eyebrow">COFFEE</p>
-        <h2 class="serif">Caffè Ramaglianti</h2>
-        <p>
-          フィレンツェのカフェ文化に着想を得たスペシャルティコーヒー。
-          神奈川・辻堂のコーヒースタンドで焙煎豆やドリンクを提供するほか、オンラインでも豆をお買い求めいただけます。
-        </p>
-        <a class="cta" href="https://caffe.ramaglianti.com" target="_blank" rel="noopener">
-          サイトを見る
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
+      <div class="branch-body branch-body--wide">
+        <p class="eyebrow">WORKS</p>
+        <p class="eyebrow role-tagline">Graphic Design / Creative Direction</p>
+        <div class="works-grid">
+          <a class="work-item" href="work-01.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_01_1.png" alt="She Her Her Hers / NOOK HILL - Graphic,Package" loading="lazy"></span><span class="work-title">She Her Her Hers / NOOK HILL - Graphic,Package</span></a>
+          <a class="work-item" href="work-02.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_02_1.png" alt="Slash magazine - Graphic,Logo,Editorial" loading="lazy"></span><span class="work-title">Slash magazine - Graphic,Logo,Editorial</span></a>
+          <a class="work-item" href="work-03.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_03_9.png" alt="DATS - Art direction,Graphic" loading="lazy"></span><span class="work-title">DATS - Art direction,Graphic</span></a>
+          <a class="work-item" href="work-12.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_12_1.jpg" alt="WONK - Graphic,Flyer" loading="lazy"></span><span class="work-title">WONK - Graphic,Flyer</span></a>
+          <a class="work-item" href="work-04.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_04_1.png" alt="She Her Her Hers - Graphic,Logo" loading="lazy"></span><span class="work-title">She Her Her Hers - Graphic,Logo</span></a>
+          <a class="work-item" href="work-05.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_05_1.png" alt="Supreme Caudex - Graphic,Logo" loading="lazy"></span><span class="work-title">Supreme Caudex - Graphic,Logo</span></a>
+          <a class="work-item" href="work-06.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_06_1.png" alt="Good Pickles - Graphic,Logo" loading="lazy"></span><span class="work-title">Good Pickles - Graphic,Logo</span></a>
+          <a class="work-item" href="work-07.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_07_1.png" alt="dilemma - Graphic,Logo" loading="lazy"></span><span class="work-title">dilemma - Graphic,Logo</span></a>
+          <a class="work-item" href="work-08.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_08_1.png" alt="Supreme SAUNA - Graphic,Logo" loading="lazy"></span><span class="work-title">Supreme SAUNA - Graphic,Logo</span></a>
+          <a class="work-item" href="work-09.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_09_1.png" alt="圧倒的BBQ - Graphic,Logo" loading="lazy"></span><span class="work-title">圧倒的BBQ - Graphic,Logo</span></a>
+          <a class="work-item" href="work-10.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_10_1.png" alt="So_thing. - Graphic,Logo" loading="lazy"></span><span class="work-title">So_thing. - Graphic,Logo</span></a>
+          <a class="work-item" href="work-11.html"><span class="work-thumb"><img src="assets/WORKS/web/WORKS_11_1.png" alt="saccharin - Graphic,Logo" loading="lazy"></span><span class="work-title">saccharin - Graphic,Logo</span></a>
+        </div>
+        <button type="button" class="works-more" id="worksMoreBtn" hidden>more</button>
       </div>
     </section>
   </div>
 
 </main>
 
-<footer id="contact">
-  <div class="wrap footer-inner">
-    <div class="footer-brand">
-      <img src="assets/ramaglianti-logo.png" alt="Ramaglianti" class="logo-img logo-img--footer">
-      <p>茅ヶ崎から、フィレンツェの記憶をものづくりに。デザイン / ジュエリー / コーヒー、三つの場所をひとつの視点でつないでいます。</p>
-    </div>
-    <div class="footer-contact">
-      <p>〒253-0011 神奈川県茅ヶ崎市菱沼2-7-32</p>
-      <p><a href="tel:05058061231">050-5806-1231</a></p>
-      <p><a href="mailto:info@so-thing-jp.com">info@so-thing-jp.com</a></p>
-    </div>
-  </div>
+<footer>
   <div class="wrap">
     <p class="copyright">© <span id="year"></span> Ramaglianti</p>
   </div>
 </footer>
 
-<script>
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  // Scroll-reveal for branch sections
-  const branches = document.querySelectorAll('.branch');
-  const navLinks = document.querySelectorAll('nav a[data-target]');
-
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('in-view');
-    });
-  }, { threshold: 0.18 });
-  branches.forEach(b => revealObserver.observe(b));
-
-  const navObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const link = document.querySelector(`nav a[data-target="${entry.target.id}"]`);
-      if (!link) return;
-      if (entry.isIntersecting) {
-        navLinks.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-      }
-    });
-  }, { rootMargin: '-45% 0px -45% 0px' });
-  document.querySelectorAll('main section[id]').forEach(s => navObserver.observe(s));
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
