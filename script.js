@@ -24,15 +24,6 @@ const navObserver = new IntersectionObserver((entries) => {
 }, { rootMargin: '-45% 0px -45% 0px' });
 document.querySelectorAll('main section[id]').forEach(s => navObserver.observe(s));
 
-// "more" toggle for the DESIGN works gallery
-const worksMoreBtn = document.getElementById('worksMoreBtn');
-if (worksMoreBtn) {
-  worksMoreBtn.addEventListener('click', () => {
-    document.querySelectorAll('.work-item--hidden').forEach(item => item.classList.remove('work-item--hidden'));
-    worksMoreBtn.setAttribute('hidden', '');
-  });
-}
-
 // Mobile hamburger menu
 const navToggle = document.getElementById('navToggle');
 const siteNav = document.getElementById('siteNav');
