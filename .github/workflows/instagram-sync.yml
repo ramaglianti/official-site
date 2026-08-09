@@ -1,0 +1,56 @@
+name: Instagram → Shopify 同期
+
+on:
+  # 毎週月曜 00:00 UTC(日本時間 月曜 09:00)に自動実行
+  schedule:
+    - cron: "0 0 * * 1"
+  # 手動実行(Actions タブの Run workflow ボタン)。オプション指定可。
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "書き込まず動作確認だけ (true/false)"
+        default: "false"
+      max_posts:
+        description: "1回で取り込む最大件数"
+        default: "10"
+
+permissions:
+  contents: write # data/imported.json をコミットし直すため
+
+concurrency:
+  group: instagram-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run sync
+        working-directory: tools/instagram-sync
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+          SHOPIFY_BLOG_ID: ${{ secrets.SHOPIFY_BLOG_ID }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          MAX_POSTS: ${{ github.event.inputs.max_posts || '10' }}
+        run: node sync.js
+
+      - name: Commit updated state
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          if [[ -n "$(git status --porcelain tools/instagram-sync/data/imported.json)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add tools/instagram-sync/data/imported.json
+            git commit -m "chore: update instagram import state [skip ci]"
+            git push
+          else
+            echo "状態に変化なし。コミットしません。"
+          fi

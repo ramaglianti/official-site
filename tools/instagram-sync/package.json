@@ -1,0 +1,13 @@
+{
+  "name": "instagram-sync",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "So_thing. の Instagram 投稿を Shopify のブログ記事(下書き)に変換して取り込むパイプライン",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "sync": "node sync.js"
+  }
+}
