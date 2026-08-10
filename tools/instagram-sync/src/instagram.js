@@ -27,8 +27,19 @@ export async function fetchRecentMedia(limit) {
     const res = await fetch(url);
     const json = await res.json();
     if (!res.ok || json.error) {
-      const msg = json.error?.message || res.statusText;
-      throw new Error(`Instagram API エラー: ${msg}`);
+      const e = json.error || {};
+      const detail = [
+        e.message && `message="${e.message}"`,
+        e.code != null && `code=${e.code}`,
+        e.error_subcode != null && `subcode=${e.error_subcode}`,
+        e.type && `type=${e.type}`,
+        e.fbtrace_id && `fbtrace_id=${e.fbtrace_id}`,
+      ]
+        .filter(Boolean)
+        .join(" / ");
+      throw new Error(
+        `Instagram API エラー (HTTP ${res.status}): ${detail || res.statusText}`
+      );
     }
     for (const item of json.data || []) {
       collected.push(item);
