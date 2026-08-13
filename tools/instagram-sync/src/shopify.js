@@ -1,28 +1,10 @@
 import { config, sleep } from "./config.js";
 
 const { store, adminToken, apiVersion } = config.shopify;
-const REST_BASE = `https://${store}/admin/api/${apiVersion}`;
-const GRAPHQL_URL = `${REST_BASE}/graphql.json`;
+const GRAPHQL_URL = `https://${store}/admin/api/${apiVersion}/graphql.json`;
 
-async function shopifyRest(path, { method = "GET", body } = {}) {
-  const res = await fetch(`${REST_BASE}${path}`, {
-    method,
-    headers: {
-      "X-Shopify-Access-Token": adminToken,
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  const json = text ? JSON.parse(text) : {};
-  if (!res.ok) {
-    throw new Error(
-      `Shopify REST エラー (${res.status}) ${method} ${path}: ${text}`
-    );
-  }
-  return json;
-}
-
+// Shopify Admin API はすべて GraphQL で呼ぶ。
+// (Dev Dashboard で作成した新しいアプリは REST が使えず GraphQL 前提のため)
 async function shopifyGraphql(query, variables) {
   const res = await fetch(GRAPHQL_URL, {
     method: "POST",
@@ -32,23 +14,39 @@ async function shopifyGraphql(query, variables) {
     },
     body: JSON.stringify({ query, variables }),
   });
-  const json = await res.json();
-  if (json.errors) {
-    throw new Error(`Shopify GraphQL エラー: ${JSON.stringify(json.errors)}`);
+  const text = await res.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error(`Shopify GraphQL エラー (HTTP ${res.status}): ${text}`);
+  }
+  if (!res.ok || json.errors) {
+    throw new Error(
+      `Shopify GraphQL エラー (HTTP ${res.status}): ${JSON.stringify(json.errors || text)}`
+    );
   }
   return json.data;
 }
 
 // 記事を書き込むブログを決める。SHOPIFY_BLOG_ID 未指定なら先頭のブログを使う。
 export async function resolveBlogId() {
-  if (config.shopify.blogId) return config.shopify.blogId;
-  const { blogs } = await shopifyRest("/blogs.json");
-  if (!blogs || blogs.length === 0) {
+  const configured = config.shopify.blogId;
+  if (configured) {
+    return configured.startsWith("gid://")
+      ? configured
+      : `gid://shopify/Blog/${configured}`;
+  }
+  const data = await shopifyGraphql(
+    `query { blogs(first: 20) { nodes { id title } } }`
+  );
+  const blogs = data.blogs?.nodes || [];
+  if (blogs.length === 0) {
     throw new Error(
       "Shopify にブログがありません。管理画面 > オンラインストア > ブログ記事 で先にブログを作成してください。"
     );
   }
-  return String(blogs[0].id);
+  return blogs[0].id; // gid://shopify/Blog/xxxxx
 }
 
 // 画像URL(Instagram CDN 等)を Shopify Files に取り込み、永続URLを返す。
@@ -94,22 +92,31 @@ export async function hostImage(sourceUrl, alt) {
   return url;
 }
 
-// ブログ記事を作成する。既定は下書き(published:false)。
-export async function createArticle(blogId, { title, bodyHtml, tags, featuredImage, publishedAt }) {
+// ブログ記事を作成する。既定は下書き(isPublished:false)。
+// 画像は本文HTMLに埋め込む方式(featured 画像用の入力を使わずスキーマ差異を回避)。
+export async function createArticle(blogId, { title, bodyHtml, tags, publishedAt }) {
   const article = {
+    blogId,
     title,
-    body_html: bodyHtml,
-    tags: (tags || []).join(", "),
-    published: config.publish,
-    published_at: config.publish ? publishedAt : undefined,
-    author: "So_thing.",
+    body: bodyHtml,
+    tags: tags || [],
+    isPublished: config.publish,
+    author: { name: "So_thing." },
   };
-  if (featuredImage) {
-    article.image = { src: featuredImage, alt: title };
-  }
-  const { article: created } = await shopifyRest(
-    `/blogs/${blogId}/articles.json`,
-    { method: "POST", body: { article } }
+  if (config.publish) article.publishedAt = publishedAt;
+
+  const data = await shopifyGraphql(
+    `mutation articleCreate($article: ArticleCreateInput!) {
+      articleCreate(article: $article) {
+        article { id title handle isPublished }
+        userErrors { code field message }
+      }
+    }`,
+    { article }
   );
-  return created;
+  const errs = data.articleCreate.userErrors;
+  if (errs && errs.length) {
+    throw new Error(`記事作成 失敗: ${JSON.stringify(errs)}`);
+  }
+  return data.articleCreate.article;
 }

@@ -101,6 +101,12 @@ export function buildArticle({ caption, imageUrls, permalink, timestamp, altBase
   const [featured, ...rest] = imageUrls;
   const alt = escapeHtml(altBase || title);
 
+  // 先頭画像は本文の冒頭に、残りはギャラリーとして本文末尾に埋め込む
+  // (記事の image 入力を使わず、すべて本文HTMLに含めることでスキーマ差異を回避)
+  const featuredHtml = featured
+    ? `<p><img src="${featured}" alt="${alt}" loading="lazy"></p>`
+    : "";
+
   const galleryHtml = rest
     .map(
       (url, i) =>
@@ -112,7 +118,7 @@ export function buildArticle({ caption, imageUrls, permalink, timestamp, altBase
     ? `<p><a href="${permalink}" target="_blank" rel="noopener nofollow">Instagram でこの投稿を見る</a></p>`
     : "";
 
-  const parts = [bodyHtml, galleryHtml, sourceHtml].filter(Boolean);
+  const parts = [featuredHtml, bodyHtml, galleryHtml, sourceHtml].filter(Boolean);
 
   return {
     title,

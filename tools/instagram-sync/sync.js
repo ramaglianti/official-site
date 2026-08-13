@@ -59,10 +59,9 @@ async function main() {
       title: finalArticle.title,
       bodyHtml: finalArticle.bodyHtml,
       tags: finalArticle.tags,
-      featuredImage: finalArticle.featuredImage,
       publishedAt: m.timestamp,
     });
-    console.log(`  ✓ 記事作成 (id=${article.id}, published=${article.published})`);
+    console.log(`  ✓ 記事作成 (id=${article.id}, published=${article.isPublished})`);
 
     imported.add(m.id);
     saveImported(imported); // 途中失敗しても既取り込み分は保持
