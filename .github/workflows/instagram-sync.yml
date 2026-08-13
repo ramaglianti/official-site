@@ -13,6 +13,9 @@ on:
       max_posts:
         description: "1回で取り込む最大件数"
         default: "10"
+      publish:
+        description: "下書きでなく即公開する (true/false)"
+        default: "false"
 
 permissions:
   contents: write # data/imported.json をコミットし直すため
@@ -41,6 +44,7 @@ jobs:
           SHOPIFY_BLOG_ID: ${{ secrets.SHOPIFY_BLOG_ID }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           MAX_POSTS: ${{ github.event.inputs.max_posts || '10' }}
+          PUBLISH: ${{ github.event.inputs.publish || 'false' }}
         run: node sync.js
 
       - name: Commit updated state

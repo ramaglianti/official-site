@@ -58,7 +58,8 @@ async function main() {
       title: finalArticle.title,
       bodyHtml: finalArticle.bodyHtml,
       tags: finalArticle.tags,
-      publishedAt: m.timestamp,
+      featuredImage: finalArticle.featuredImage,
+      publishDate: m.timestamp,
     });
     console.log(`  ✓ 記事作成 (id=${article.id}, published=${article.isPublished})`);
 

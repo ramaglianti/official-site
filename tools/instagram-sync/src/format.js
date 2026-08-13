@@ -97,12 +97,8 @@ export function buildArticle({ caption, imageUrls, permalink, timestamp, altBase
   const [featured, ...rest] = imageUrls;
   const alt = escapeHtml(altBase || title);
 
-  // 先頭画像は本文の冒頭に、残りはギャラリーとして本文末尾に埋め込む
-  // (記事の image 入力を使わず、すべて本文HTMLに含めることでスキーマ差異を回避)
-  const featuredHtml = featured
-    ? `<p><img src="${featured}" alt="${alt}" loading="lazy"></p>`
-    : "";
-
+  // 先頭画像は記事の「表紙画像」に使う(createArticle 側で image 欄に設定)。
+  // 本文には2枚目以降(ギャラリー)を埋め込む(表紙との重複を避ける)。
   const galleryHtml = rest
     .map(
       (url, i) =>
@@ -114,7 +110,7 @@ export function buildArticle({ caption, imageUrls, permalink, timestamp, altBase
     ? `<p><a href="${permalink}" target="_blank" rel="noopener nofollow">Instagram でこの投稿を見る</a></p>`
     : "";
 
-  const parts = [featuredHtml, bodyHtml, galleryHtml, sourceHtml].filter(Boolean);
+  const parts = [bodyHtml, galleryHtml, sourceHtml].filter(Boolean);
 
   return {
     title,

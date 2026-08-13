@@ -125,8 +125,8 @@ export async function hostImage(sourceUrl, alt) {
 }
 
 // ブログ記事を作成する。既定は下書き(isPublished:false)。
-// 画像は本文HTMLに埋め込む方式(featured 画像用の入力を使わずスキーマ差異を回避)。
-export async function createArticle(blogId, { title, bodyHtml, tags, publishedAt }) {
+// 表紙画像は image 欄に、公開日(並び順の基準)は publishDate に投稿日を設定する。
+export async function createArticle(blogId, { title, bodyHtml, tags, featuredImage, publishDate }) {
   const article = {
     blogId,
     title,
@@ -135,7 +135,11 @@ export async function createArticle(blogId, { title, bodyHtml, tags, publishedAt
     isPublished: config.publish,
     author: { name: "So_thing." },
   };
-  if (config.publish) article.publishedAt = publishedAt;
+  // 公開する場合は投稿日を公開日に設定(過去日OK)。ブログはこの日付の新しい順に並ぶ。
+  if (config.publish && publishDate) article.publishDate = publishDate;
+  if (featuredImage) {
+    article.image = { url: featuredImage, altText: title };
+  }
 
   const data = await shopifyGraphql(
     `mutation articleCreate($article: ArticleCreateInput!) {
