@@ -7,6 +7,11 @@ import { loadImported, saveImported } from "./src/state.js";
 async function main() {
   const imported = loadImported();
   console.log(`取り込み済み: ${imported.size} 件 / dryRun=${config.dryRun} / publish=${config.publish}`);
+  // 診断: 値の中身は出さず、ストア名とトークン長・末尾4文字だけ確認(欠け・取り違え検出用)
+  const tok = config.shopify.adminToken;
+  console.log(
+    `診断: SHOPIFY_STORE="${config.shopify.store}" / token長=${tok.length} / token末尾=${tok.slice(-4)}`
+  );
 
   // 取り込み済みを除いて maxPosts 件に達するよう、多めに取得してから絞る。
   const media = await fetchRecentMedia(config.maxPosts * 3);
