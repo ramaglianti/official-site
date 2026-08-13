@@ -44,7 +44,8 @@ jobs:
           SHOPIFY_BLOG_ID: ${{ secrets.SHOPIFY_BLOG_ID }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           MAX_POSTS: ${{ github.event.inputs.max_posts || '10' }}
-          PUBLISH: ${{ github.event.inputs.publish || 'false' }}
+          # スケジュール実行(入力なし)は即公開、手動実行は入力値(既定 false=下書き)に従う
+          PUBLISH: ${{ github.event.inputs.publish || 'true' }}
         run: node sync.js
 
       - name: Commit updated state
