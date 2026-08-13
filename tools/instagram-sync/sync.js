@@ -8,10 +8,9 @@ async function main() {
   const imported = loadImported();
   console.log(`取り込み済み: ${imported.size} 件 / dryRun=${config.dryRun} / publish=${config.publish}`);
 
-  // 取り込み済みを除いて maxPosts 件に達するよう、多めに取得してから絞る。
-  const media = await fetchRecentMedia(config.maxPosts * 3);
+  // 取り込み済みを飛ばしつつ、未取り込みが maxPosts 件集まるまで古い方へ遡って取得。
+  const media = await fetchRecentMedia(config.maxPosts, imported);
   const pending = media
-    .filter((m) => !imported.has(m.id))
     .filter((m) => imageUrlsOf(m).length > 0) // 画像なし(単独動画等)は対象外
     .slice(0, config.maxPosts);
 

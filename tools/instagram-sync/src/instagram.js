@@ -11,19 +11,22 @@ const FIELDS = [
   "children{id,media_type,media_url,thumbnail_url}",
 ].join(",");
 
-// Instagram Graph API から自分の投稿一覧を取得する(新しい順)。
-// ページングを辿り、必要件数に達したら止める。
-export async function fetchRecentMedia(limit) {
+// Instagram Graph API から投稿を取得する(新しい順)。
+// skipIds(取り込み済み)は飛ばし、未取り込みが limit 件集まるまで古い方へページをたどる。
+// これにより実行を繰り返すだけで全履歴を最後まで遡れる(古い投稿もいずれ到達する)。
+export async function fetchRecentMedia(limit, skipIds = new Set()) {
   const { accessToken, graphVersion } = config.instagram;
   const collected = [];
-  // Instagram ログイン方式: graph.instagram.com の /me/media を使う。
+  // Instagram ログイン方式: graph.instagram.com の /me/media を使う。1ページ最大50件。
   let url =
     `https://graph.instagram.com/${graphVersion}/me/media` +
     `?fields=${encodeURIComponent(FIELDS)}` +
-    `&limit=${Math.min(limit, 50)}` +
+    `&limit=50` +
     `&access_token=${encodeURIComponent(accessToken)}`;
 
-  while (url && collected.length < limit) {
+  let pages = 0;
+  const MAX_PAGES = 60; // 安全上限(~3000投稿分)。無限ループ・過剰リクエスト防止。
+  while (url && collected.length < limit && pages < MAX_PAGES) {
     const res = await fetch(url);
     const json = await res.json();
     if (!res.ok || json.error) {
@@ -42,10 +45,12 @@ export async function fetchRecentMedia(limit) {
       );
     }
     for (const item of json.data || []) {
+      if (skipIds.has(item.id)) continue; // 取り込み済みは飛ばす
       collected.push(item);
       if (collected.length >= limit) break;
     }
     url = json.paging?.next || null;
+    pages++;
   }
   return collected;
 }
