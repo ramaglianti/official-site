@@ -38,20 +38,16 @@ export function extractHashtags(caption) {
   return tags;
 }
 
-// 本文からタイトルを作る(先頭の「意味のある行」を短く切り出す)。
-// 「.」やスペーサー行・ハッシュタグだけの行は飛ばす。
+// タイトルは投稿日を「YYYY.MM.DD」形式(日本時間)で作る。
 function deriveTitle(bodyLines, timestamp) {
-  for (const line of bodyLines) {
-    const clean = line.replace(HASHTAG_RE, "").trim();
-    if (clean && hasMeaning(clean)) {
-      return clean.length > 40 ? clean.slice(0, 40) + "…" : clean;
-    }
-  }
-  const d = new Date(timestamp);
-  const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
-  return `So_thing. Instagram ${ymd}`;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(timestamp));
+  const get = (type) => parts.find((p) => p.type === type).value;
+  return `${get("year")}.${get("month")}.${get("day")}`;
 }
 
 // キャプションを段落 HTML に変換する。
