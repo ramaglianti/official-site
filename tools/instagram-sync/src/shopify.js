@@ -1,15 +1,47 @@
 import { config, sleep } from "./config.js";
 
-const { store, adminToken, apiVersion } = config.shopify;
+const { store, clientId, clientSecret, apiVersion } = config.shopify;
 const GRAPHQL_URL = `https://${store}/admin/api/${apiVersion}/graphql.json`;
+const TOKEN_URL = `https://${store}/admin/oauth/access_token`;
+
+// Dev Dashboard アプリのアクセストークンは client credentials grant で都度取得する
+// (静的トークンは無く、client_id + client_secret を交換する。有効約24時間)。
+let cachedToken = null;
+async function getAccessToken() {
+  if (cachedToken) return cachedToken;
+  const res = await fetch(TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+  const text = await res.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error(`Shopify トークン取得エラー (HTTP ${res.status}): ${text}`);
+  }
+  if (!res.ok || !json.access_token) {
+    throw new Error(
+      `Shopify トークン取得エラー (HTTP ${res.status}): ${JSON.stringify(json)}`
+    );
+  }
+  cachedToken = json.access_token;
+  return cachedToken;
+}
 
 // Shopify Admin API はすべて GraphQL で呼ぶ。
 // (Dev Dashboard で作成した新しいアプリは REST が使えず GraphQL 前提のため)
 async function shopifyGraphql(query, variables) {
+  const token = await getAccessToken();
   const res = await fetch(GRAPHQL_URL, {
     method: "POST",
     headers: {
-      "X-Shopify-Access-Token": adminToken,
+      "X-Shopify-Access-Token": token,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query, variables }),

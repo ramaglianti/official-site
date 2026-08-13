@@ -46,8 +46,10 @@ export const config = {
     graphVersion: process.env.IG_GRAPH_VERSION || "v21.0",
   },
   shopify: {
-    store: required("SHOPIFY_STORE"), // 例: so-thing-jp.myshopify.com
-    adminToken: required("SHOPIFY_ADMIN_TOKEN"),
+    store: required("SHOPIFY_STORE"), // 例: so-thing.myshopify.com
+    // Dev Dashboard アプリは client credentials grant でアクセストークンを都度取得する
+    clientId: required("SHOPIFY_CLIENT_ID"),
+    clientSecret: required("SHOPIFY_CLIENT_SECRET"),
     apiVersion: process.env.SHOPIFY_API_VERSION || "2026-07",
     blogId: process.env.SHOPIFY_BLOG_ID || null, // 未指定なら自動解決
   },

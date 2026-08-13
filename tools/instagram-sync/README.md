@@ -42,8 +42,13 @@ tools/instagram-sync/
 |---|---|
 | `IG_ACCESS_TOKEN` | Instagram API(Instagramログイン方式)のアクセストークン |
 | `SHOPIFY_STORE` | `xxxxx.myshopify.com` 形式のストアドメイン |
-| `SHOPIFY_ADMIN_TOKEN` | Shopify カスタムアプリの Admin API トークン(`shpat_...`) |
+| `SHOPIFY_CLIENT_ID` | Dev Dashboard アプリの「資格情報」クライアントID |
+| `SHOPIFY_CLIENT_SECRET` | Dev Dashboard アプリの「資格情報」シークレット |
 | `SHOPIFY_BLOG_ID` | (任意)特定ブログに入れたい場合のみ。未設定なら先頭のブログ |
+
+> **Shopify のトークンについて**: Dev Dashboard で作成したアプリには静的な Admin API トークンが無く、
+> 実行のたびに `client_id` + `client_secret` を `POST /admin/oauth/access_token`(`grant_type=client_credentials`)
+> で交換して24時間有効のトークンを取得します。コードが自動で行うので、手動更新は不要です。
 
 > このパイプラインは **Instagram ログイン方式(`graph.instagram.com`)** を使います。
 > Facebookページ連携は不要で、`IG_USER_ID` も不要(API が `me` で自分の投稿を返す)。
@@ -71,20 +76,25 @@ tools/instagram-sync/
 > 60日ごとに再生成するか、`graph.instagram.com/refresh_access_token` で更新してください。
 > 自動更新の仕組みが必要になったら、パイプラインに更新処理を追加できます(別途相談)。
 
-### B. Shopify Admin API トークンの取得
+### B. Shopify 認証情報の取得(Dev Dashboard 方式)
 
-1. Shopify 管理画面 → **設定 → アプリと販売チャネル → アプリを開発**。
-2. **「アプリを作成」**。名前は任意(例: `instagram-sync`)。
-3. **「Admin API の統合を構成する」** で以下のスコープを付与:
-   - `write_content`(ブログ記事の作成に必要)
-   - `read_content`
+新しい Shopify ストアではカスタムアプリが **Dev Dashboard** に一本化されており、静的な
+`shpat_` トークンは発行されません。代わりに **クライアントID + シークレット** を使います。
+
+1. Shopify 管理画面 → **設定 → アプリ → アプリを開発する** → **Dev Dashboard でアプリを開発**。
+2. **アプリを作成**(名前は任意)。**「設定(Configuration)」** で Admin API スコープを付与:
+   - `write_content` / `read_content`(ブログ記事の作成に必要)
    - `write_files` / `read_files`(画像の取り込みに必要)
-4. 保存 → **「アプリをインストール」**。
-5. **「Admin API アクセストークン」** が一度だけ表示される(`shpat_...`)。これが `SHOPIFY_ADMIN_TOKEN`。
-   その場でコピーして保管(後から再表示不可)。
-6. `SHOPIFY_STORE` は管理画面URLの `xxxxx.myshopify.com` 部分。
-   独自ドメイン `so-thing-jp.com` ではなく `.myshopify.com` の方を使うこと。
-7. ブログが無ければ **オンラインストア → ブログ記事 → ブログを管理** で作成しておく。
+3. アプリを **ストアにインストール**(配布/インストールの導線から so-thing ストアへ)。
+4. アプリの **「設定」→「資格情報」** にある **クライアントID** と **シークレット(「表示」で確認)** をコピー:
+   - クライアントID → `SHOPIFY_CLIENT_ID`
+   - シークレット → `SHOPIFY_CLIENT_SECRET`
+5. `SHOPIFY_STORE` は **設定 → ドメイン** に表示される `xxxxx.myshopify.com`(独自ドメインではない方)。
+6. ブログが無ければ **オンラインストア → ブログ記事** で作成しておく。
+
+> コードは実行時に `POST https://{SHOPIFY_STORE}/admin/oauth/access_token`
+> (`grant_type=client_credentials`)でアクセストークン(24時間有効)を取得し、
+> `X-Shopify-Access-Token` ヘッダで Admin API(GraphQL)を呼びます。トークンの手動管理は不要です。
 
 ### C. GitHub Secrets への登録
 

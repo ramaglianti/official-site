@@ -36,7 +36,8 @@ jobs:
         env:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
-          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
           SHOPIFY_BLOG_ID: ${{ secrets.SHOPIFY_BLOG_ID }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           MAX_POSTS: ${{ github.event.inputs.max_posts || '10' }}
