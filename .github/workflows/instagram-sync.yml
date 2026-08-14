@@ -16,6 +16,12 @@ on:
       publish:
         description: "下書きでなく即公開する (true/false)"
         default: "false"
+      mode:
+        description: "import=通常取り込み / summaries=既存記事に抜粋を後付け"
+        default: "import"
+      summary_len:
+        description: "抜粋の文字数(summaries モード時)"
+        default: "100"
 
 permissions:
   contents: write # data/imported.json をコミットし直すため
@@ -48,7 +54,13 @@ jobs:
           MAX_POSTS: ${{ github.event.inputs.max_posts || '10' }}
           # スケジュール実行(入力なし)は即公開、手動実行は入力値(既定 false=下書き)に従う
           PUBLISH: ${{ github.event.inputs.publish || 'true' }}
-        run: node sync.js
+          SUMMARY_LEN: ${{ github.event.inputs.summary_len || '100' }}
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "summaries" ]; then
+            node backfill-summaries.js
+          else
+            node sync.js
+          fi
 
       - name: Commit updated state
         if: ${{ github.event.inputs.dry_run != 'true' }}

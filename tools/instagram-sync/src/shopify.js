@@ -157,3 +157,45 @@ export async function createArticle(blogId, { title, bodyHtml, tags, summary, fe
   }
   return data.articleCreate.article;
 }
+
+// ブログ内の全記事を取得(ページング)。id/title/summary/body を返す。
+export async function getAllArticles(blogId) {
+  const all = [];
+  let cursor = null;
+  do {
+    const data = await shopifyGraphql(
+      `query($id: ID!, $cursor: String) {
+        blog(id: $id) {
+          articles(first: 50, after: $cursor) {
+            nodes { id title summary body }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+      }`,
+      { id: blogId, cursor }
+    );
+    const conn = data.blog?.articles;
+    if (!conn) break;
+    all.push(...conn.nodes);
+    cursor = conn.pageInfo.hasNextPage ? conn.pageInfo.endCursor : null;
+  } while (cursor);
+  return all;
+}
+
+// 記事の抜粋(summary)を更新する。
+export async function updateArticleSummary(id, summary) {
+  const data = await shopifyGraphql(
+    `mutation($id: ID!, $article: ArticleUpdateInput!) {
+      articleUpdate(id: $id, article: $article) {
+        article { id }
+        userErrors { field message }
+      }
+    }`,
+    { id, article: { summary } }
+  );
+  const errs = data.articleUpdate.userErrors;
+  if (errs && errs.length) {
+    throw new Error(`記事更新 失敗: ${JSON.stringify(errs)}`);
+  }
+  return data.articleUpdate.article;
+}
