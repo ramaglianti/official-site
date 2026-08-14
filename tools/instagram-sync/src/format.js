@@ -87,12 +87,25 @@ function captionToParagraphs(caption) {
   return { html, lines: keptLines };
 }
 
+// 一覧用の抜粋(短い要約)を作る。本文テキストの先頭 maxLen 文字。
+function makeSummary(lines, maxLen = 100) {
+  const text = lines
+    .map((l) => l.replace(HASHTAG_RE, "").trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!text) return "";
+  return text.length > maxLen ? text.slice(0, maxLen) + "…" : text;
+}
+
 // 記事本文 HTML を組み立てる。
 // imageUrls は Shopify にホスティング済みの永続URL、permalink は出典リンク。
 export function buildArticle({ caption, imageUrls, permalink, timestamp, altBase }) {
   const { html: bodyHtml, lines } = captionToParagraphs(caption);
   const title = deriveTitle(lines, timestamp);
   const tags = extractHashtags(caption);
+  const summary = makeSummary(lines);
 
   const [featured, ...rest] = imageUrls;
   const alt = escapeHtml(altBase || title);
@@ -115,6 +128,7 @@ export function buildArticle({ caption, imageUrls, permalink, timestamp, altBase
   return {
     title,
     tags,
+    summary,
     featuredImage: featured || null,
     bodyHtml: parts.join("\n"),
   };

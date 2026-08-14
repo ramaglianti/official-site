@@ -58,6 +58,7 @@ async function main() {
       title: finalArticle.title,
       bodyHtml: finalArticle.bodyHtml,
       tags: finalArticle.tags,
+      summary: finalArticle.summary,
       featuredImage: finalArticle.featuredImage,
       publishDate: m.timestamp,
     });

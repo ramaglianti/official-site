@@ -126,7 +126,7 @@ export async function hostImage(sourceUrl, alt) {
 
 // ブログ記事を作成する。既定は下書き(isPublished:false)。
 // 表紙画像は image 欄に、公開日(並び順の基準)は publishDate に投稿日を設定する。
-export async function createArticle(blogId, { title, bodyHtml, tags, featuredImage, publishDate }) {
+export async function createArticle(blogId, { title, bodyHtml, tags, summary, featuredImage, publishDate }) {
   const article = {
     blogId,
     title,
@@ -135,6 +135,7 @@ export async function createArticle(blogId, { title, bodyHtml, tags, featuredIma
     isPublished: config.publish,
     author: { name: "So_thing." },
   };
+  if (summary) article.summary = summary; // 一覧用の抜粋
   // 公開する場合は投稿日を公開日に設定(過去日OK)。ブログはこの日付の新しい順に並ぶ。
   if (config.publish && publishDate) article.publishDate = publishDate;
   if (featuredImage) {
