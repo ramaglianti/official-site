@@ -45,10 +45,15 @@ tools/instagram-sync/
 | `SHOPIFY_CLIENT_ID` | Dev Dashboard アプリの「資格情報」クライアントID |
 | `SHOPIFY_CLIENT_SECRET` | Dev Dashboard アプリの「資格情報」シークレット |
 | `SHOPIFY_BLOG_ID` | (任意)特定ブログに入れたい場合のみ。未設定なら先頭のブログ |
+| `GH_PAT` | (任意)Instagramトークンを自動延長して Secret に保存するための Fine-grained PAT(権限: Secrets = Read and write)。未設定なら自動延長はスキップされ、従来どおり手動更新。 |
 
 > **Shopify のトークンについて**: Dev Dashboard で作成したアプリには静的な Admin API トークンが無く、
 > 実行のたびに `client_id` + `client_secret` を `POST /admin/oauth/access_token`(`grant_type=client_credentials`)
 > で交換して24時間有効のトークンを取得します。コードが自動で行うので、手動更新は不要です。
+
+> **Instagram トークンの自動延長**: 実行のたびに `refresh_access_token` で長期トークンを延長(約60日)し、
+> `gh secret set` で `IG_ACCESS_TOKEN` を新トークンに上書きします(`GH_PAT` が必要)。毎日実行していれば
+> 期限切れが起きません。`GH_PAT` 未設定時はこの処理をスキップするだけで、同期本体は通常どおり動きます。
 
 > このパイプラインは **Instagram ログイン方式(`graph.instagram.com`)** を使います。
 > Facebookページ連携は不要で、`IG_USER_ID` も不要(API が `me` で自分の投稿を返す)。
