@@ -1,9 +1,9 @@
 name: Instagram → Shopify 同期
 
 on:
-  # 毎週月曜 00:00 UTC(日本時間 月曜 09:00)に自動実行
+  # 毎日 00:00 UTC(日本時間 09:00)に自動実行
   schedule:
-    - cron: "0 0 * * 1"
+    - cron: "0 0 * * *"
   # 手動実行(Actions タブの Run workflow ボタン)。オプション指定可。
   workflow_dispatch:
     inputs:
